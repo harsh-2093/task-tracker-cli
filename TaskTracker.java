@@ -32,6 +32,13 @@ public class TaskTracker {
           String filter=(args.length>1)?args[1]:null;
           handleListTasks(filter);
           break;
+        case "delete":
+          if (args.length > 1) {
+                handleDeleteTask(args[1]);
+          }else{
+            System.out.println("Error: Missing ID. Usage: java TaskTracker delete <id>");
+          }
+          break;
         default:
           System.out.println("Unknown command. Try 'add' or 'list'.");
       }
@@ -119,10 +126,54 @@ public class TaskTracker {
       int end = (endComma != -1 && endComma < endBrace) ? endComma : endBrace;
         return json.substring(start, end).trim();
     }
+  }
 
+  public static void handleDeleteTask(String targetIdStr) throws IOException{
+    String content=Files.readString(Paths.get(FILE_PATH));
 
+    if(content.equals("[]")||content.isBlank()){
+      System.out.println("No tasks to delete.");
+      return;
+    }
 
+    String cleaned =content.substring(1,content.length()-1);
+    String [] taskStrings=cleaned.split("\\},");
 
+    StringBuilder newJson=new StringBuilder("[");
+    boolean taskFound=false;
+    boolean isFirstTaskToKeep=true;
+
+    for(String taskstr:taskStrings){
+
+      if(!taskstr.endsWith("}"))
+      {
+        taskstr+="}";
+      }
+
+      String currentId=extractValue(taskstr,"id");
+
+      if(currentId.equals(targetIdStr))
+      {
+        taskFound=true;
+        continue;
+      }
+
+      if(!isFirstTaskToKeep)
+      {
+        newJson.append(",");
+      }
+      newJson.append(taskstr);
+      isFirstTaskToKeep=false;
+    }
+    newJson.append("]");
+
+    if(taskFound){
+      Files.writeString(Paths.get(FILE_PATH), newJson.toString());
+      System.out.println("Task " + targetIdStr + " deleted successfully.");
+    }
+    else {
+      System.out.println("Task ID " + targetIdStr + " not found.");
+    }
     }
 
 }
