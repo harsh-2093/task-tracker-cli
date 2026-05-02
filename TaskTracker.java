@@ -20,8 +20,15 @@ public class TaskTracker {
       ensureFileExists();
 
       switch(command.toLowerCase()){
+        case "help":
+        case "-help":
+            System.out.println("--- Task Tracker Help ---");
+            System.out.println("add <description>  : Adds a new task");
+            System.out.println("list               : Shows all tasks");
+            System.out.println("delete <id>        : Removes a task");
+            System.out.println("update ...         : Updates a task");
+            break;
         case "update":
-          // We need 3 things now: ID, Field, and the New Value
           if (args.length > 3) {
             String idToUpdate = args[1];
             String field = args[2];
