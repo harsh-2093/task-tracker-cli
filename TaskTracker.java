@@ -1,4 +1,3 @@
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +20,19 @@ public class TaskTracker {
       ensureFileExists();
 
       switch(command.toLowerCase()){
+        case "update":
+          // We need 3 things now: ID, Field, and the New Value
+          if (args.length > 3) {
+            String idToUpdate = args[1];
+            String field = args[2];
+            String newValue = args[3];
+            
+            handleMasterUpdate(idToUpdate, field, newValue);
+          } else {
+            System.out.println("Error: Missing arguments.");
+            System.out.println("Usage: java TaskTracker update <id> <status/description> \"new value\"");
+          }
+          break;
         case "add":
           if(args.length>1){
             handleAddTask(args[1]);
@@ -174,6 +186,70 @@ public class TaskTracker {
     else {
       System.out.println("Task ID " + targetIdStr + " not found.");
     }
+    }
+
+    public static void handleMasterUpdate(String targetIdStr,String fieldToUpdate,String newValue) throws IOException
+    {
+      String content = Files.readString(Paths.get(FILE_PATH));
+      
+      if (content.equals("[]") || content.isBlank()) {
+      System.out.println("No tasks to update.");
+      return;
+      }
+
+      fieldToUpdate = fieldToUpdate.toLowerCase();
+      if (!fieldToUpdate.equals("status") && !fieldToUpdate.equals("description")) {
+      System.out.println("Error: Invalid field. You can only update 'status' or 'description'.");
+      return;
+      }
+      String cleaned = content.substring(1, content.length() - 1);
+      String[] taskStrings = cleaned.split("\\},");
+
+    StringBuilder newJson = new StringBuilder("[");
+    boolean taskFound = false;
+    boolean isFirstTaskToKeep = true;
+    for (String taskStr : taskStrings) {
+      if (!taskStr.endsWith("}")) {
+        taskStr += "}";
+      }
+
+      String currentId = extractValue(taskStr, "id");
+
+      if (currentId.equals(targetIdStr)) {
+        taskFound = true;
+
+        String oldValue = extractValue(taskStr, fieldToUpdate);
+
+        String targetToReplace = "\"" + fieldToUpdate + "\":\"" + oldValue + "\"";
+        String replacement = "\"" + fieldToUpdate + "\":\"" + newValue + "\"";
+
+        String updatedTaskStr = taskStr.replace(targetToReplace, replacement);
+
+        if (!isFirstTaskToKeep) {
+            newJson.append(",");
+        }
+        newJson.append(updatedTaskStr);
+        isFirstTaskToKeep = false;
+        continue; 
+      }
+
+      // NO MATCH: Keep the task exactly as it was
+      if (!isFirstTaskToKeep) {
+        newJson.append(",");
+      }
+      newJson.append(taskStr);
+      isFirstTaskToKeep = false;
+    }
+
+    newJson.append("]");
+
+    if (taskFound) {
+      Files.writeString(Paths.get(FILE_PATH), newJson.toString());
+      System.out.println("Task " + targetIdStr + " successfully updated (" + fieldToUpdate + " -> " + newValue + ").");
+    } else {
+      System.out.println("Task ID " + targetIdStr + " not found.");
+    }
+
     }
 
 }
