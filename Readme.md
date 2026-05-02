@@ -1,4 +1,4 @@
-**Project URL:** [https://github.com/harsh-2093/task-tracker-cli](https://github.com/harsh-2093/task-tracker-cli)
+**Project URL:** [https://roadmap.sh/projects/task-tracker](https://roadmap.sh/projects/task-tracker)
 # Task Tracker CLI
 
 A simple, dependency-free Command Line Interface (CLI) application built in pure Java to manage tasks. This project uses no external libraries and saves data directly to a local `task.json` file.
